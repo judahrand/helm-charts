@@ -1,0 +1,19 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      commitTitle: 'Merge pull request #63 from k8snetworkplumbingwg/dependabot/github_actions/docker/setup-qemu-action-4...'
+      sha: 78a89c730a513ef05a054e98ec17f873535b8144
+      tags:
+      - v0.1.0
+    path: .
+  path: .vendor/multi-networkpolicy-nftables
+- contents:
+  - git:
+      commitTitle: 'Merge pull request #24 from zeeke/v1beta1-endport...'
+      sha: a6d2c547f9f9dc756d285e7015fc32f7b6793f76
+      tags:
+      - v1.0.1
+    path: .
+  path: .vendor/multi-networkpolicy
+kind: LockConfig

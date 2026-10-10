@@ -1,0 +1,116 @@
+---
+# Default values for multi-networkpolicy-nftables; the controller that enforces
+# MultiNetworkPolicy on secondary (net-attach-def) interfaces with nftables.
+# The MultiNetworkPolicy CRD ships unmodified from upstream in the chart's crds/
+# directory (see the README).
+
+image:
+  # -- Image repository.
+  repository: ghcr.io/k8snetworkplumbingwg/multi-networkpolicy-nftables
+  # -- Image pull policy.
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag; defaults to the chart appVersion.
+  tag: ""
+
+# -- Image pull secrets for private registries.
+imagePullSecrets: []
+# - name: my-registry-secret
+
+# -- Override the chart name used in resource names.
+nameOverride: ""
+# -- Override the full release name.
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Create a ServiceAccount.
+  create: true
+  # -- Automount the API token (on by default: the controller watches the cluster API).
+  automount: true
+  # -- Annotations for the ServiceAccount.
+  annotations: {}
+  # -- ServiceAccount name; generated from the release name if empty.
+  name: ""
+
+rbac:
+  # -- Create the ClusterRole/ClusterRoleBinding (rules mirror the upstream deploy.yaml).
+  create: true
+  # -- Annotations for the RBAC resources.
+  annotations: {}
+
+# Controller runtime configuration.
+controller:
+  # -- Path to the CRI socket, relative to `host.prefix`. Defaults to containerd;
+  # set `/run/crio/crio.sock` on CRI-O.
+  containerRuntimeEndpoint: /run/containerd/containerd.sock
+  # -- Comma-separated CNI plugins whose net-attach-defs are enforced (the
+  # upstream deploy manifest enables macvlan and ipvlan).
+  networkPlugins: macvlan,ipvlan
+  # -- Accept all ICMP traffic (path MTU discovery).
+  acceptICMP: true
+  # -- Accept all ICMPv6 traffic (IPv6 neighbour discovery).
+  acceptICMPv6: true
+  # -- zap log level (higher is more verbose).
+  logLevel: 2
+  # -- Additional arguments passed to the controller.
+  extraArgs: []
+
+host:
+  # -- Prefix under which the host root filesystem is mounted; the controller
+  # reads the CRI socket and pod network namespaces beneath it.
+  prefix: /host
+  # -- Host root filesystem path mounted at `host.prefix`.
+  path: /
+
+customRules:
+  # -- Create and mount the custom-rule ConfigMaps (common rules applied to every
+  # policy; the files are read once at controller start).
+  enabled: true
+  # -- Custom IPv4 ingress and egress rules.
+  ipv4: |
+    # Add custom IPv4 rules here if needed
+  # -- Custom IPv6 ingress and egress rules.
+  ipv6: |
+    # Add custom IPv6 rules here if needed
+
+# -- Annotations added to the pod.
+podAnnotations: {}
+# -- Labels added to the pod.
+podLabels: {}
+
+# -- Pod-level securityContext (the controller enters pod network namespaces and
+# must run as root on the host network).
+podSecurityContext: {}
+
+# -- Container securityContext (privileged: the controller uses setns and writes
+# nftables rules inside pod network namespaces).
+securityContext:
+  privileged: true
+  capabilities:
+    add:
+      - SYS_ADMIN
+      - NET_ADMIN
+
+# -- Pod resource requests/limits.
+resources: {}
+# limits:
+#   cpu: 100m
+#   memory: 150Mi
+# requests:
+#   cpu: 100m
+#   memory: 80Mi
+
+# -- Priority class name for pod scheduling (node infrastructure: must not be
+# evicted from any node).
+priorityClassName: system-node-critical
+
+# -- Node selector for pod scheduling.
+nodeSelector: {}
+
+# -- Tolerations for pod scheduling (defaults keep the DaemonSet on
+# critical-addons-only nodes).
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Exists
+
+# -- Affinity rules for pod scheduling.
+affinity: {}

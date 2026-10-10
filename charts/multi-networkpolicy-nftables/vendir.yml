@@ -1,0 +1,29 @@
+---
+# Upstream sources, synced by `mise run crds`.
+#
+# directories[0] is the controller release and its ref must match the chart
+# appVersion (enforced by that task). The MultiNetworkPolicy CRD lives in the
+# base multi-networkpolicy repository, which versions independently; both are
+# staged under .vendor/ and the crds task copies the CRD into crds/.
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+directories:
+  # Staging: the controller release ships no standalone CRD; the deploy manifest
+  # is vendored verbatim for reference and diffing.
+  - path: .vendor/multi-networkpolicy-nftables
+    contents:
+      - path: .
+        git:
+          url: https://github.com/k8snetworkplumbingwg/multi-networkpolicy-nftables
+          ref: v0.1.0
+        includePaths:
+          - deploy.yaml
+  # Staging: the MultiNetworkPolicy CRD, copied into crds/ by the crds task.
+  - path: .vendor/multi-networkpolicy
+    contents:
+      - path: .
+        git:
+          url: https://github.com/k8snetworkplumbingwg/multi-networkpolicy
+          ref: v1.0.1
+        includePaths:
+          - scheme.yml

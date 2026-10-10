@@ -1,0 +1,302 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "affinity": {
+      "description": "Affinity rules for pod scheduling.",
+      "required": [],
+      "title": "affinity",
+      "type": "object"
+    },
+    "controller": {
+      "description": "Controller runtime configuration.",
+      "properties": {
+        "acceptICMP": {
+          "default": true,
+          "description": "Accept all ICMP traffic (path MTU discovery).",
+          "title": "acceptICMP",
+          "type": "boolean"
+        },
+        "acceptICMPv6": {
+          "default": true,
+          "description": "Accept all ICMPv6 traffic (IPv6 neighbour discovery).",
+          "title": "acceptICMPv6",
+          "type": "boolean"
+        },
+        "containerRuntimeEndpoint": {
+          "default": "/run/containerd/containerd.sock",
+          "description": "Path to the CRI socket, relative to `host.prefix`. Defaults to containerd;\nset `/run/crio/crio.sock` on CRI-O.",
+          "title": "containerRuntimeEndpoint",
+          "type": "string"
+        },
+        "extraArgs": {
+          "description": "Additional arguments passed to the controller.",
+          "items": {
+            "required": []
+          },
+          "title": "extraArgs",
+          "type": "array"
+        },
+        "logLevel": {
+          "default": 2,
+          "description": "zap log level (higher is more verbose).",
+          "title": "logLevel",
+          "type": "integer"
+        },
+        "networkPlugins": {
+          "default": "macvlan,ipvlan",
+          "description": "Comma-separated CNI plugins whose net-attach-defs are enforced (the\nupstream deploy manifest enables macvlan and ipvlan).",
+          "title": "networkPlugins",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "controller",
+      "type": "object"
+    },
+    "customRules": {
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Create and mount the custom-rule ConfigMaps (common rules applied to every\npolicy; the files are read once at controller start).",
+          "title": "enabled",
+          "type": "boolean"
+        },
+        "ipv4": {
+          "default": "# Add custom IPv4 rules here if needed\n",
+          "description": "Custom IPv4 ingress and egress rules.",
+          "title": "ipv4",
+          "type": "string"
+        },
+        "ipv6": {
+          "default": "# Add custom IPv6 rules here if needed\n",
+          "description": "Custom IPv6 ingress and egress rules.",
+          "title": "ipv6",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "customRules",
+      "type": "object"
+    },
+    "fullnameOverride": {
+      "default": "",
+      "description": "Override the full release name.",
+      "title": "fullnameOverride",
+      "type": "string"
+    },
+    "global": {
+      "description": "Global values are values that can be accessed from any chart or subchart by exactly the same name.",
+      "required": [],
+      "title": "global",
+      "type": "object"
+    },
+    "host": {
+      "properties": {
+        "path": {
+          "default": "/",
+          "description": "Host root filesystem path mounted at `host.prefix`.",
+          "title": "path",
+          "type": "string"
+        },
+        "prefix": {
+          "default": "/host",
+          "description": "Prefix under which the host root filesystem is mounted; the controller\nreads the CRI socket and pod network namespaces beneath it.",
+          "title": "prefix",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "host",
+      "type": "object"
+    },
+    "image": {
+      "description": "Default values for multi-networkpolicy-nftables; the controller that enforces\nMultiNetworkPolicy on secondary (net-attach-def) interfaces with nftables.\nThe MultiNetworkPolicy CRD ships unmodified from upstream in the chart's crds/\ndirectory (see the README).",
+      "properties": {
+        "pullPolicy": {
+          "default": "IfNotPresent",
+          "description": "Image pull policy.",
+          "title": "pullPolicy",
+          "type": "string"
+        },
+        "repository": {
+          "default": "ghcr.io/k8snetworkplumbingwg/multi-networkpolicy-nftables",
+          "description": "Image repository.",
+          "title": "repository",
+          "type": "string"
+        },
+        "tag": {
+          "default": "",
+          "description": "Overrides the image tag; defaults to the chart appVersion.",
+          "title": "tag",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "image",
+      "type": "object"
+    },
+    "imagePullSecrets": {
+      "description": "Image pull secrets for private registries.",
+      "items": {
+        "required": []
+      },
+      "title": "imagePullSecrets",
+      "type": "array"
+    },
+    "nameOverride": {
+      "default": "",
+      "description": "Override the chart name used in resource names.",
+      "title": "nameOverride",
+      "type": "string"
+    },
+    "nodeSelector": {
+      "description": "Node selector for pod scheduling.",
+      "required": [],
+      "title": "nodeSelector",
+      "type": "object"
+    },
+    "podAnnotations": {
+      "description": "Annotations added to the pod.",
+      "required": [],
+      "title": "podAnnotations",
+      "type": "object"
+    },
+    "podLabels": {
+      "description": "Labels added to the pod.",
+      "required": [],
+      "title": "podLabels",
+      "type": "object"
+    },
+    "podSecurityContext": {
+      "description": "Pod-level securityContext (the controller enters pod network namespaces and\nmust run as root on the host network).",
+      "required": [],
+      "title": "podSecurityContext",
+      "type": "object"
+    },
+    "priorityClassName": {
+      "default": "system-node-critical",
+      "description": "Priority class name for pod scheduling (node infrastructure: must not be\nevicted from any node).",
+      "title": "priorityClassName",
+      "type": "string"
+    },
+    "rbac": {
+      "properties": {
+        "annotations": {
+          "description": "Annotations for the RBAC resources.",
+          "required": [],
+          "title": "annotations",
+          "type": "object"
+        },
+        "create": {
+          "default": true,
+          "description": "Create the ClusterRole/ClusterRoleBinding (rules mirror the upstream deploy.yaml).",
+          "title": "create",
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "title": "rbac",
+      "type": "object"
+    },
+    "resources": {
+      "description": "Pod resource requests/limits.",
+      "required": [],
+      "title": "resources",
+      "type": "object"
+    },
+    "securityContext": {
+      "description": "Container securityContext (privileged: the controller uses setns and writes\nnftables rules inside pod network namespaces).",
+      "properties": {
+        "capabilities": {
+          "properties": {
+            "add": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "required": []
+              },
+              "title": "add",
+              "type": "array"
+            }
+          },
+          "required": [],
+          "title": "capabilities",
+          "type": "object"
+        },
+        "privileged": {
+          "default": true,
+          "title": "privileged",
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "title": "securityContext",
+      "type": "object"
+    },
+    "serviceAccount": {
+      "properties": {
+        "annotations": {
+          "description": "Annotations for the ServiceAccount.",
+          "required": [],
+          "title": "annotations",
+          "type": "object"
+        },
+        "automount": {
+          "default": true,
+          "description": "Automount the API token (on by default: the controller watches the cluster API).",
+          "title": "automount",
+          "type": "boolean"
+        },
+        "create": {
+          "default": true,
+          "description": "Create a ServiceAccount.",
+          "title": "create",
+          "type": "boolean"
+        },
+        "name": {
+          "default": "",
+          "description": "ServiceAccount name; generated from the release name if empty.",
+          "title": "name",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "serviceAccount",
+      "type": "object"
+    },
+    "tolerations": {
+      "description": "Tolerations for pod scheduling (defaults keep the DaemonSet on\ncritical-addons-only nodes).",
+      "items": {
+        "anyOf": [
+          {
+            "properties": {
+              "key": {
+                "default": "CriticalAddonsOnly",
+                "title": "key",
+                "type": "string"
+              },
+              "operator": {
+                "default": "Exists",
+                "title": "operator",
+                "type": "string"
+              }
+            },
+            "required": [],
+            "type": "object"
+          }
+        ],
+        "required": []
+      },
+      "title": "tolerations",
+      "type": "array"
+    }
+  },
+  "required": [],
+  "type": "object"
+}
