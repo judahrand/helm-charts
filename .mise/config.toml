@@ -40,6 +40,11 @@ done
 yq 'select(.kind == "CustomResourceDefinition")' charts/multus/.vendor/multus-cni/multus-daemonset.yml \
   > charts/multus/crds/k8s.cni.cncf.io_network-attachment-definitions.yaml
 
+# multi-networkpolicy-nftables ships no standalone CRD file; the CRD lives in the
+# base multi-networkpolicy repository and is staged under .vendor/.
+cp charts/multi-networkpolicy-nftables/.vendor/multi-networkpolicy/scheme.yml \
+  charts/multi-networkpolicy-nftables/crds/k8s.cni.cncf.io_multi-networkpolicies.yaml
+
 # vendir wipes its managed directory on sync; restore the tracked placeholder.
 touch charts/snapshot-controller/crds/.gitkeep
 """
@@ -109,6 +114,29 @@ EOF
       uninstall multus
       kubectl get crd network-attachment-definitions.k8s.cni.cncf.io
       kubectl get network-attachment-definitions e2e
+      ;;
+    multi-networkpolicy-nftables)
+      helm install multi-networkpolicy-nftables charts/multi-networkpolicy-nftables \
+        --namespace kube-system --wait --timeout 5m
+      kubectl get crd multi-networkpolicies.k8s.cni.cncf.io
+      kubectl apply -f - <<EOF
+apiVersion: k8s.cni.cncf.io/v1beta1
+kind: MultiNetworkPolicy
+metadata:
+  name: e2e
+  namespace: default
+  annotations:
+    k8s.v1.cni.cncf.io/policy-for: "e2e"
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+EOF
+      kubectl get multi-networkpolicies -n default e2e
+      # Uninstall must leave the CRD and user objects behind (native crds/ handling).
+      uninstall multi-networkpolicy-nftables
+      kubectl get crd multi-networkpolicies.k8s.cni.cncf.io
+      kubectl get multi-networkpolicies -n default e2e
       ;;
     *)
       echo "${chart}: no e2e scenario defined" >&2

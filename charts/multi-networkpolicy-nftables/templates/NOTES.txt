@@ -1,0 +1,15 @@
+multi-networkpolicy-nftables {{ .Values.image.tag | default .Chart.AppVersion }} is installed as a DaemonSet in namespace {{ .Release.Namespace }}.
+
+The MultiNetworkPolicy CRD ships in the chart's crds/ directory. Helm installs
+it on first install but never upgrades or deletes it; after upgrading the chart
+across a vendir bump, apply the matching CRD (see the chart README).
+
+Check the rollout:
+
+  kubectl -n {{ .Release.Namespace }} rollout status daemonset/{{ include "multi-networkpolicy-nftables.fullname" . }}
+
+The controller connects to the CRI socket at {{ .Values.host.prefix }}{{ .Values.controller.containerRuntimeEndpoint }}
+and enforces policies for the {{ .Values.controller.networkPlugins }} net-attach-defs. Create a
+MultiNetworkPolicy that targets a NetworkAttachmentDefinition to get started:
+
+  k8s.v1.cni.cncf.io/policy-for: "<net-attach-def name>"

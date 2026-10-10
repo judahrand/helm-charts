@@ -1,0 +1,121 @@
+suite: daemonset
+templates:
+  - daemonset.tpl
+tests:
+  - it: should render a DaemonSet with the appVersion image by default
+    asserts:
+      - isKind:
+          of: DaemonSet
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/k8snetworkplumbingwg/multi-networkpolicy-nftables:v0.1.0
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: system-node-critical
+
+  - it: should pass the default controller flags
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - --zap-log-level=2
+            - --container-runtime-endpoint=/run/containerd/containerd.sock
+            - --network-plugins=macvlan,ipvlan
+            - --host-prefix=/host
+            - --accept-icmp
+            - --accept-icmpv6
+            - --custom-v4-ingress-rule-file=/etc/multi-networkpolicy/rules/custom-v4-rules.txt
+            - --custom-v4-egress-rule-file=/etc/multi-networkpolicy/rules/custom-v4-rules.txt
+            - --custom-v6-ingress-rule-file=/etc/multi-networkpolicy/rules/custom-v6-rules.txt
+            - --custom-v6-egress-rule-file=/etc/multi-networkpolicy/rules/custom-v6-rules.txt
+
+  - it: should append extraArgs after the defaults
+    set:
+      controller.extraArgs:
+        - --hostname-override=node-1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --hostname-override=node-1
+
+  - it: should allow overriding the CRI socket and network plugins
+    set:
+      controller.containerRuntimeEndpoint: /run/crio/crio.sock
+      controller.networkPlugins: macvlan,sriov
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --container-runtime-endpoint=/run/crio/crio.sock
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --network-plugins=macvlan,sriov
+
+  - it: should mount the host root filesystem at the host prefix
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].hostPath.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /host
+
+  - it: should mount the custom rules ConfigMaps by default
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[1].projected.sources[0].configMap.name
+          value: RELEASE-NAME-multi-networkpolicy-nftables-custom-v4-rules
+      - equal:
+          path: spec.template.spec.volumes[1].projected.sources[1].configMap.name
+          value: RELEASE-NAME-multi-networkpolicy-nftables-custom-v6-rules
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /etc/multi-networkpolicy/rules
+
+  - it: should drop the custom rules when disabled
+    set:
+      customRules.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes[1]
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts[1]
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --custom-v4-ingress-rule-file=/etc/multi-networkpolicy/rules/custom-v4-rules.txt
+
+  - it: should run privileged with the netns and nftables capabilities
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.privileged
+          value: true
+      - contains:
+          path: spec.template.spec.containers[0].securityContext.capabilities.add
+          content: SYS_ADMIN
+      - contains:
+          path: spec.template.spec.containers[0].securityContext.capabilities.add
+          content: NET_ADMIN
+
+  - it: should tolerate CriticalAddonsOnly by default
+    asserts:
+      - contains:
+          path: spec.template.spec.tolerations
+          content:
+            key: CriticalAddonsOnly
+            operator: Exists
+
+  - it: should add pod annotations and labels
+    set:
+      podAnnotations:
+        foo: bar
+      podLabels:
+        baz: qux
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations.foo
+          value: bar
+      - equal:
+          path: spec.template.metadata.labels.baz
+          value: qux
